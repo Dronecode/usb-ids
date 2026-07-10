@@ -1,0 +1,36 @@
+name: PID assignment request
+description: Request a USB product ID under the Dronecode VID (0x3643)
+title: "[PID request] "
+labels: [pid-request]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        PIDs are assigned by opening a pull request against `usb-ids.yaml`.
+        If you are able to open the PR yourself, please do that instead; this
+        form is for requesters who want a maintainer to make the change.
+  - type: input
+    id: manufacturer
+    attributes:
+      label: Manufacturer name
+    validations:
+      required: true
+  - type: input
+    id: contact
+    attributes:
+      label: Contact email
+    validations:
+      required: true
+  - type: textarea
+    id: boards
+    attributes:
+      label: Board(s) the PIDs are for
+      description: One PID is assigned per board.
+    validations:
+      required: true
+  - type: checkboxes
+    id: membership
+    attributes:
+      label: Dronecode membership
+      options:
+        - label: We are a Dronecode Foundation member

@@ -1,0 +1,36 @@
+# Dronecode Foundation USB ID registry
+#
+# Single source of truth for PID assignments under VID 0x3643.
+# See README.md for the assignment process.
+#
+# PID format: "0x" + 4 uppercase hex digits, quoted (YAML would otherwise
+# parse some values as integers).
+
+vid: "0x3643"
+vendor_string: "Dronecode Project, Inc."
+
+manufacturers:
+  - name: PX4/Dronecode
+    px4_vendor: px4
+    contact: rroche@linuxfoundation.org
+    pids:
+      - pid: "0x001D"
+        board: FMU-v6XRT
+        date: 2023-11-01
+
+  - name: ZeroOne
+    px4_vendor: zeroone
+    contact: menghua@01aero.com
+    pids:
+      - pid: "0x15E0"
+        board: X6
+        date: 2024-08-01
+
+  - name: NewBeeDrone
+    # Not upstream in PX4 yet; slug matches boards/newbeedrone/ from PR #26966.
+    px4_vendor: newbeedrone
+    contact: kelvin@newbeedrone.com
+    pids:
+      - pid: "0x0050"
+        board: PixNova
+        date: 2026-04-04
