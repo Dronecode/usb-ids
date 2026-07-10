@@ -52,3 +52,8 @@ python3 validate.py usb-ids.yaml
 ```
 
 Runs automatically on every PR and push to `main`.
+
+Note for maintainers: PX4 CI (including release branches carrying older
+copies of `check_usb_ids.py`) fetches this file from `main` at check time,
+so schema changes must stay backward compatible: adding fields is fine,
+renaming or removing them breaks deployed checkers.
