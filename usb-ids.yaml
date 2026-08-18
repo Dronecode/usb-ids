@@ -34,3 +34,12 @@ manufacturers:
       - pid: "0x0050"
         board: PixNova
         date: 2026-04-04
+
+  - name: Syro
+    px4_vendor: syro
+    contact: info@syrorobotics.com
+    pids:
+      - pid: "0x0001"
+        board: Syro V6X
+        date: 2026-08-03
+
