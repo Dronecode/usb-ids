@@ -43,3 +43,10 @@ manufacturers:
         board: Syro V6X
         date: 2026-08-03
 
+  - name: Agam Robotics
+    px4_vendor: agam-robotics
+    contact: contactus@agamrobotics.com
+    pids:
+      - pid: "0x0002"
+        board: Agam Autopilot v6X-RT
+        date: 2026-08-18
