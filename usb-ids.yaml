@@ -50,3 +50,6 @@ manufacturers:
       - pid: "0x0002"
         board: Agam Autopilot v6X-RT
         date: 2026-08-18
+      - pid: "0x0003"
+        board: Agam MegH7
+        date: 2026-08-22
