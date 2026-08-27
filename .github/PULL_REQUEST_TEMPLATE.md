@@ -4,6 +4,6 @@
 
 **Board(s):**
 
-- [ ] Entries added to `usb-ids.yaml` (one per PID, lowest free PIDs)
+- [ ] All PIDs are inside our claimed block(s) in `blocks` (first request: claim a free aligned 16-PID block, `0xNNN0`)
 - [ ] Contact email is valid and monitored
 - [ ] We are a Dronecode Foundation member (or state your affiliation below)

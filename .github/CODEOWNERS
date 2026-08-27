@@ -1,0 +1,4 @@
+# The registry and the validator that guards it are maintainer-owned.
+# `legacy:` in particular is maintainer-set; see LEGACY_PIDS in validate.py.
+/usb-ids.yaml  @mrpollo
+/validate.py   @mrpollo

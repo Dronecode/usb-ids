@@ -9,8 +9,10 @@ PX4-Autopilot CI checks board definitions against this registry, so a board
 using VID `0x3643` cannot merge upstream with an unregistered PID or a PID
 belonging to another manufacturer.
 
-There are no reservations: PIDs are assigned to real boards. Request one
-when you have hardware to name.
+PIDs are assigned in blocks of 16: your first request claims an aligned
+block (`0xNNN0`-`0xNNNF`) and every PID you are assigned comes from inside
+it. Claim a block when you have hardware to name, not in advance; when a
+block fills up, claim another.
 
 ## Requesting a PID
 
@@ -21,6 +23,7 @@ when you have hardware to name.
    - name: Acme Robotics
      px4_vendor: acme          # your directory under boards/ in PX4-Autopilot
      contact: usb@acme.example
+     blocks: ["0x0070"]        # 16 PIDs, 0x0070-0x007F
      pids:
        - pid: "0x0070"
          board: Acme FC1
@@ -31,8 +34,10 @@ when you have hardware to name.
    Dronecode Foundation membership and merges. Assignments are at maintainer
    discretion.
 
-Pick the lowest free PID; one entry per PID. If you can't open a PR, use
-the [PID request issue form](../../issues/new/choose).
+Pick the lowest free block unless you have a reason not to; any free
+aligned block is fine. One entry per PID. PID values are hexadecimal:
+after `"0x0039"` comes `"0x003A"`, not `"0x0040"`. If you can't open a
+PR, use the [PID request issue form](../../issues/new/choose).
 
 ## Field reference
 
@@ -43,6 +48,8 @@ the [PID request issue form](../../issues/new/choose).
 | `date` | Assignment date, `YYYY-MM-DD` |
 | `contact` | Email address for the manufacturer |
 | `px4_vendor` | Your vendor directory name in the PX4 `boards/` tree. Optional until you upstream a board; **required before your first PX4-Autopilot board PR**, otherwise PX4 CI will reject it. |
+| `blocks` | List of claimed block starts, `"0x"` + 4 uppercase hex digits ending in `0`; each covers 16 PIDs (`0xNNN0`-`0xNNNF`), globally unique. Required before any non-legacy PID can be assigned. |
+| `legacy` | `true` on assignments that predate the block policy (before 2026-09). Maintainer-set, not for new requests. |
 
 ## Validation
 
