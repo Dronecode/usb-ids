@@ -25,7 +25,9 @@ body:
     id: boards
     attributes:
       label: Board(s) the PIDs are for
-      description: One PID is assigned per board.
+      description: >-
+        PIDs are assigned from your manufacturer's block of 16 (your first
+        request claims one), one PID per board.
     validations:
       required: true
   - type: checkboxes
