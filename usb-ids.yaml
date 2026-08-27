@@ -3,6 +3,11 @@
 # Single source of truth for PID assignments under VID 0x3643.
 # See README.md for the assignment process.
 #
+# PIDs are assigned in blocks of 16: each manufacturer claims an
+# aligned block (0xNNN0-0xNNNF), listed in `blocks`, and assigns
+# PIDs from inside it. Values are hexadecimal: after "0x0039"
+# comes "0x003A", not "0x0040".
+#
 # PID format: "0x" + 4 uppercase hex digits, quoted (YAML would otherwise
 # parse some values as integers).
 
@@ -13,6 +18,7 @@ manufacturers:
   - name: PX4/Dronecode
     px4_vendor: px4
     contact: rroche@linuxfoundation.org
+    blocks: ["0x0010"]  # 0x0010-0x001F
     pids:
       - pid: "0x001D"
         board: FMU-v6XRT
@@ -21,6 +27,7 @@ manufacturers:
   - name: ZeroOne
     px4_vendor: zeroone
     contact: menghua@01aero.com
+    blocks: ["0x15E0"]  # 0x15E0-0x15EF
     pids:
       - pid: "0x15E0"
         board: X6
@@ -30,6 +37,7 @@ manufacturers:
     # Not upstream in PX4 yet; slug matches boards/newbeedrone/ from PR #26966.
     px4_vendor: newbeedrone
     contact: kelvin@newbeedrone.com
+    blocks: ["0x0050"]  # 0x0050-0x005F
     pids:
       - pid: "0x0050"
         board: PixNova
@@ -42,6 +50,7 @@ manufacturers:
       - pid: "0x0001"
         board: Syro V6X
         date: 2026-08-03
+        legacy: true
 
   - name: Agam Robotics
     px4_vendor: agam-robotics
@@ -50,6 +59,8 @@ manufacturers:
       - pid: "0x0002"
         board: Agam Autopilot v6X-RT
         date: 2026-08-18
+        legacy: true
       - pid: "0x0003"
         board: Agam MegH7
         date: 2026-08-22
+        legacy: true
