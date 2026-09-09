@@ -53,7 +53,7 @@ manufacturers:
         legacy: true
 
   - name: Agam Robotics
-    px4_vendor: agam-robotics
+    px4_vendor: agam
     contact: contactus@agamrobotics.com
     pids:
       - pid: "0x0002"
