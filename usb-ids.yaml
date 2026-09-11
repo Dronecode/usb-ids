@@ -64,3 +64,15 @@ manufacturers:
         board: Agam MegH7
         date: 2026-08-22
         legacy: true
+
+  - name: SIYI
+    px4_vendor: siyi
+    contact: support@siyi.biz
+    blocks: ["0x04B0"]  # 0x04B0-0x04BF
+    pids:
+      - pid: "0x04B0"
+        board: SIYI N7
+        date: 2026-09-11
+      - pid: "0x04BF"
+        board: SIYI UniFC 6 PICO
+        date: 2026-09-11
