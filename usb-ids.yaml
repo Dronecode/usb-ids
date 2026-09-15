@@ -76,3 +76,12 @@ manufacturers:
       - pid: "0x04BF"
         board: SIYI UniFC 6 PICO
         date: 2026-09-11
+        
+  - name: Droneer
+    px4_vendor: droneer
+    contact: noreply@droneer.com
+    blocks: ["0x06E0"]  # 0x06E0-0x06EF
+    pids:
+      - pid: "0x06E0"
+        board: X6
+        date: 2026-09-15
