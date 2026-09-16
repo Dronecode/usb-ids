@@ -79,9 +79,9 @@ manufacturers:
         
   - name: Droneer
     px4_vendor: droneer
-    contact: noreply@droneer.com
+    contact: cooperation@droneer.com
     blocks: ["0x06E0"]  # 0x06E0-0x06EF
     pids:
       - pid: "0x06E0"
-        board: X6
+        board: DroneerX6
         date: 2026-09-15
