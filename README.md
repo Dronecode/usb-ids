@@ -48,7 +48,6 @@ PR, use the [PID request issue form](../../issues/new/choose).
 | `date` | Assignment date, `YYYY-MM-DD` |
 | `contact` | Email address for the manufacturer |
 | `px4_vendor` | Your vendor directory name in the PX4 `boards/` tree. Optional until you upstream a board; **required before your first PX4-Autopilot board PR**, otherwise PX4 CI will reject it. |
-| `usb_vendor_string` | The exact `CONFIG_CDCACM_VENDORSTR` your PX4 boards ship. Optional; defaults to `name`, so set it only when the two differ. |
 | `px4_board` | On a PID: the `<vendor>/<board>` directory under PX4's `boards/` that uses it (e.g. `siyi/n7`), inside your `px4_vendor`. Leave it off until the board is upstream in PX4, or add it in the same window as your board PR. |
 | `blocks` | List of claimed block starts, `"0x"` + 4 uppercase hex digits ending in `0`; each covers 16 PIDs (`0xNNN0`-`0xNNNF`), globally unique. Required before any non-legacy PID can be assigned. |
 | `legacy` | `true` on assignments that predate the block policy (before 2026-09). Maintainer-set, not for new requests. |
@@ -63,12 +62,12 @@ python3 validate.py usb-ids.yaml
 Runs automatically on every PR and push to `main`.
 
 `check_px4.py` checks the registry against a PX4-Autopilot checkout in both
-directions: each `px4_board` must exist with matching
-`CONFIG_CDCACM_VENDORID`, `CONFIG_CDCACM_PRODUCTID` and
-`CONFIG_CDCACM_VENDORSTR` (the registry `vendor_string`, or the
-manufacturer's `usb_vendor_string`), and every PX4 board using VID `0x3643`
-must be claimed by some `px4_board`. A `px4_board` whose directory is not in
-PX4 yet is only a notice. CI runs it against PX4 `main` on every PR, push,
+directions: every defconfig under a `px4_board` directory that sets
+`CONFIG_CDCACM_VENDORID` to `0x3643` must set `CONFIG_CDCACM_PRODUCTID` to
+that entry's PID, and every PX4 board using VID `0x3643` must be claimed by
+some `px4_board`. A `px4_board` whose directory is not in PX4 yet is only a
+notice. A PX4 path with no board using VID `0x3643` fails rather than
+passing with nothing checked. CI runs it against PX4 `main` on every PR, push,
 and weekly.
 
 ```sh

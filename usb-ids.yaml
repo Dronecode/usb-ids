@@ -12,9 +12,8 @@
 # parse some values as integers).
 #
 # `px4_board` on a PID names the PX4 boards/<vendor>/<board> directory that
-# ships it; absent means the board is not upstream yet. `usb_vendor_string`
-# on a manufacturer is the CONFIG_CDCACM_VENDORSTR its PX4 boards use, set
-# only when it differs from `name`. check_px4.py enforces both against PX4.
+# ships it; absent means the board is not upstream yet. check_px4.py checks
+# it against PX4.
 
 vid: "0x3643"
 vendor_string: "Dronecode Project, Inc."
@@ -74,7 +73,6 @@ manufacturers:
         legacy: true
 
   - name: SIYI
-    usb_vendor_string: "Siyi"
     px4_vendor: siyi
     contact: support@siyi.biz
     blocks: ["0x04B0"]  # 0x04B0-0x04BF

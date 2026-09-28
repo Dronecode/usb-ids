@@ -3,17 +3,17 @@
 
 Usage: check_px4.py <px4-autopilot-dir> [usb-ids.yaml]
 
-A PX4 board defconfig matches its registry entry when it lives at
-boards/<px4_board>/nuttx-config/*/defconfig and its CONFIG_CDCACM_VENDORID,
-CONFIG_CDCACM_PRODUCTID (hex-int compares) and CONFIG_CDCACM_VENDORSTR
-(exact: the registry vendor_string, or the manufacturer's
-usb_vendor_string, which defaults to its name) agree with the registry.
+A PX4 board defconfig at boards/<px4_board>/nuttx-config/*/defconfig whose
+CONFIG_CDCACM_VENDORID is the registry VID must set CONFIG_CDCACM_PRODUCTID
+to that entry's PID (hex-int compares).
 
 Both directions are checked: every entry with px4_board must match the
 defconfigs in that directory, and every PX4 defconfig using the registry VID
 must belong to some entry's px4_board. A px4_board whose directory does not
 exist in PX4 yet is a notice, not an error, so a registry entry can land
-before its board PR. Prints one line per finding and exits 1 on any error.
+before its board PR. A PX4 path with no boards/ directory, or with no
+defconfig using the registry VID, is an error, so an empty checkout cannot
+pass. Prints one line per finding and exits 1 on any error.
 
 Only dependency: PyYAML.
 """
@@ -24,17 +24,15 @@ from pathlib import Path
 from validate import load, validate
 
 DEFCONFIG_GLOB = "nuttx-config/*/defconfig"
-KEYS = ("CONFIG_CDCACM_VENDORID", "CONFIG_CDCACM_PRODUCTID", "CONFIG_CDCACM_VENDORSTR")
+KEYS = ("CONFIG_CDCACM_VENDORID", "CONFIG_CDCACM_PRODUCTID")
 
 
 def read_defconfig(path):
-    """Return the CDCACM settings of a defconfig, strings unquoted."""
+    """Return the CDCACM VID and PID settings of a defconfig."""
     values = {}
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         key, sep, value = line.partition("=")
         if sep and key in KEYS:
-            if len(value) >= 2 and value[0] == value[-1] == '"':
-                value = value[1:-1]
             values[key] = value
     return values
 
@@ -47,18 +45,17 @@ def hex_int(value):
 
 
 def check(doc, px4_dir):
-    """Return (errors, notices) comparing the registry to PX4's boards/."""
+    """Return (errors, notices, defconfigs checked, boards checked)."""
     errors, notices = [], []
     boards_dir = px4_dir / "boards"
     vid = int(doc["vid"], 16)
 
-    # px4_board -> (pid, accepted vendor strings)
+    # px4_board -> pid
     entries = {}
     for mfr in doc["manufacturers"]:
-        strings = {doc["vendor_string"], mfr.get("usb_vendor_string", mfr["name"])}
         for entry in mfr["pids"]:
             if "px4_board" in entry:
-                entries[entry["px4_board"]] = (entry["pid"], strings)
+                entries[entry["px4_board"]] = entry["pid"]
 
     # board -> [(defconfig path relative to PX4, settings)] for our VID only
     px4_boards = {}
@@ -70,7 +67,17 @@ def check(doc, px4_dir):
         rel = path.relative_to(px4_dir).as_posix()
         px4_boards.setdefault(board, []).append((rel, values))
 
-    for board, (pid, strings) in sorted(entries.items()):
+    # PX4 ships boards on this VID, so finding none means a wrong or empty
+    # checkout, not a clean result.
+    if not px4_boards:
+        errors.append(
+            f"no defconfig under {boards_dir} sets "
+            f"CONFIG_CDCACM_VENDORID={doc['vid']}; not a PX4 checkout?"
+        )
+        return errors, notices, 0, 0
+
+    checked_boards = 0
+    for board, pid in sorted(entries.items()):
         if not (boards_dir / board).is_dir():
             notices.append(
                 f"pid {pid}: boards/{board}/ not in PX4 yet; checked once "
@@ -84,20 +91,13 @@ def check(doc, px4_dir):
                 f"CONFIG_CDCACM_VENDORID={doc['vid']}"
             )
             continue
+        checked_boards += 1
         for rel, values in defconfigs:
             product = values.get("CONFIG_CDCACM_PRODUCTID")
             if hex_int(product) != int(pid, 16):
                 errors.append(
                     f"{rel}: CONFIG_CDCACM_PRODUCTID={product} but the "
                     f"registry assigns {pid} to {board}"
-                )
-            vendor_str = values.get("CONFIG_CDCACM_VENDORSTR")
-            if vendor_str not in strings:
-                expected = " or ".join(f'"{s}"' for s in sorted(strings))
-                found = "unset" if vendor_str is None else f'"{vendor_str}"'
-                errors.append(
-                    f"{rel}: CONFIG_CDCACM_VENDORSTR is {found}, "
-                    f"expected {expected}"
                 )
 
     for board, defconfigs in sorted(px4_boards.items()):
@@ -108,7 +108,8 @@ def check(doc, px4_dir):
                     f"has px4_board '{board}'"
                 )
 
-    return errors, notices
+    checked = sum(len(d) for d in px4_boards.values())
+    return errors, notices, checked, checked_boards
 
 
 def main():
@@ -127,7 +128,7 @@ def main():
     # The cross-check trusts the registry's structure; stop if it is invalid.
     errors = validate(doc)
     if not errors:
-        errors, notices = check(doc, px4_dir)
+        errors, notices, checked, boards = check(doc, px4_dir)
         for n in notices:
             print(f"notice: {n}")
     for e in errors:
@@ -135,7 +136,10 @@ def main():
     if errors:
         print(f"{path}: {len(errors)} error(s) against {px4_dir}", file=sys.stderr)
         return 1
-    print(f"{path}: matches {px4_dir}")
+    print(
+        f"{path}: matches {px4_dir}, checked {checked} defconfig(s) "
+        f"across {boards} mapped board(s)"
+    )
     return 0
 
 

@@ -28,7 +28,7 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 TOP_KEYS = {"vid", "vendor_string", "manufacturers"}
 MFR_REQUIRED = {"name", "contact", "pids"}
-MFR_OPTIONAL = {"px4_vendor", "blocks", "usb_vendor_string"}
+MFR_OPTIONAL = {"px4_vendor", "blocks"}
 PID_REQUIRED = {"pid", "board", "date"}
 PID_OPTIONAL = {"legacy", "px4_board"}
 
@@ -111,12 +111,6 @@ def validate(doc):
                 )
             else:
                 seen_vendors[px4_vendor] = name
-
-        usb_vendor_string = mfr.get("usb_vendor_string")
-        if "usb_vendor_string" in mfr and (
-            not isinstance(usb_vendor_string, str) or not usb_vendor_string.strip()
-        ):
-            err(f"{where}: 'usb_vendor_string' must be a non-empty string")
 
         # Blocks are all 16 wide and 16-aligned, so two of them overlap only
         # if they share a start value: unique starts means no overlap.

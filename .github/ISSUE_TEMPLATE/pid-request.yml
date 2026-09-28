@@ -38,14 +38,6 @@ body:
         The `boards/<vendor>/<board>` directory in PX4-Autopilot that will
         use the PID, if you have one (e.g. `boards/acme/fc1`). Leave empty
         if the board is not headed upstream yet.
-  - type: input
-    id: usb_vendor_string
-    attributes:
-      label: USB vendor string
-      description: >-
-        The exact `CONFIG_CDCACM_VENDORSTR` your boards' defconfigs set, if
-        it differs from the manufacturer name above. PX4 CI compares it
-        character for character, case included.
   - type: checkboxes
     id: membership
     attributes:
