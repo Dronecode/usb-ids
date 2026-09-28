@@ -2,10 +2,11 @@
 """Validate usb-ids.yaml, the Dronecode USB ID registry.
 
 Checks structure, field formats, PID uniqueness (case-insensitive),
-px4_vendor slug uniqueness, and block allocation: every non-legacy PID sits
-inside one of its manufacturer's claimed 16-PID blocks, and no block holds
-another manufacturer's PID. Prints one error per line and exits 1 on any
-violation, 0 when the registry is valid.
+px4_vendor slug uniqueness, px4_board format and uniqueness, and block
+allocation: every non-legacy PID sits inside one of its manufacturer's
+claimed 16-PID blocks, and no block holds another manufacturer's PID.
+Prints one error per line and exits 1 on any violation, 0 when the registry
+is valid. check_px4.py compares the registry against a PX4 checkout.
 
 Only dependency: PyYAML.
 """
@@ -19,6 +20,9 @@ PID_RE = re.compile(r"^0x[0-9A-F]{4}$")
 VID_RE = re.compile(r"^0x[0-9A-F]{4}$")
 BLOCK_RE = re.compile(r"^0x[0-9A-F]{3}0$")
 PX4_VENDOR_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+# Board directory names in PX4 include uppercase and underscores
+# (radiolink/PIX6, saam/saampixv1_1).
+PX4_BOARD_RE = re.compile(r"^[a-z0-9][a-z0-9-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -26,7 +30,7 @@ TOP_KEYS = {"vid", "vendor_string", "manufacturers"}
 MFR_REQUIRED = {"name", "contact", "pids"}
 MFR_OPTIONAL = {"px4_vendor", "blocks"}
 PID_REQUIRED = {"pid", "board", "date"}
-PID_OPTIONAL = {"legacy"}
+PID_OPTIONAL = {"legacy", "px4_board"}
 
 # Assignments predating the block policy. Maintainer-set: extending this set
 # is a deliberate edit here, not something a PID request can grant itself.
@@ -68,6 +72,7 @@ def validate(doc):
     seen_pids = {}  # normalized pid -> manufacturer name
     seen_vendors = {}  # px4_vendor -> manufacturer name
     seen_blocks = {}  # block start -> manufacturer name
+    seen_boards = {}  # px4_board -> pid
     assigned = []  # (pid as int, pid as written, manufacturer name)
 
     for i, mfr in enumerate(manufacturers):
@@ -200,6 +205,33 @@ def validate(doc):
                         f"the block policy (date before {LEGACY_CUTOFF})"
                     )
 
+            px4_board = entry.get("px4_board")
+            if "px4_board" in entry:
+                if not isinstance(px4_board, str) or not PX4_BOARD_RE.match(
+                    px4_board
+                ):
+                    err(
+                        f"{pwhere}: px4_board '{px4_board}' must be a "
+                        "<vendor>/<board> path under PX4's boards/"
+                    )
+                elif not isinstance(px4_vendor, str):
+                    err(
+                        f"{pwhere}: px4_board '{px4_board}' requires "
+                        f"{name}'s 'px4_vendor'"
+                    )
+                elif not px4_board.startswith(px4_vendor + "/"):
+                    err(
+                        f"{pwhere}: px4_board '{px4_board}' is outside "
+                        f"px4_vendor '{px4_vendor}'"
+                    )
+                elif px4_board in seen_boards:
+                    err(
+                        f"{pwhere}: px4_board '{px4_board}' already used by "
+                        f"pid {seen_boards[px4_board]}"
+                    )
+                else:
+                    seen_boards[px4_board] = pid
+
             # Skip entries whose pid already failed the format check.
             if pid_ok and legacy is not True:
                 start = f"0x{int(pid, 16) & ~0xF:04X}"
@@ -224,13 +256,20 @@ def validate(doc):
     return errors
 
 
-def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else "usb-ids.yaml"
+def load(path):
+    """Return (ok, parsed registry); prints the error when loading fails."""
     try:
         with open(path, encoding="utf-8") as f:
-            doc = yaml.safe_load(f)
+            return True, yaml.safe_load(f)
     except (OSError, yaml.YAMLError) as e:
         print(f"error: cannot load {path}: {e}", file=sys.stderr)
+        return False, None
+
+
+def main():
+    path = sys.argv[1] if len(sys.argv) > 1 else "usb-ids.yaml"
+    ok, doc = load(path)
+    if not ok:
         return 1
 
     errors = validate(doc)

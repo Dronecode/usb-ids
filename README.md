@@ -6,8 +6,8 @@ Pixhawk/PX4-compatible hardware. This repository is the single source of
 truth for those assignments: [`usb-ids.yaml`](usb-ids.yaml).
 
 PX4-Autopilot CI checks board definitions against this registry, so a board
-using VID `0x3643` cannot merge upstream with an unregistered PID or a PID
-belonging to another manufacturer.
+using VID `0x3643` cannot merge upstream unless its PID is registered here
+and mapped to that board's directory with `px4_board`.
 
 PIDs are assigned in blocks of 16: your first request claims an aligned
 block (`0xNNN0`-`0xNNNF`) and every PID you are assigned comes from inside
@@ -27,12 +27,19 @@ block fills up, claim another.
      pids:
        - pid: "0x0070"
          board: Acme FC1
+         px4_board: acme/fc1   # boards/acme/fc1 in PX4-Autopilot
          date: 2026-07-10
    ```
 
 2. CI validates the file (format, uniqueness). A maintainer confirms your
    Dronecode Foundation membership and merges. Assignments are at maintainer
    discretion.
+
+3. Once your entry is merged here, open your board pull request in
+   PX4-Autopilot. Its USB ID check reads this registry and fails until your
+   PID is mapped to your board's directory with `px4_board`; if you opened
+   the PX4 pull request first, re-run the check after the registry pull
+   request merges, no changes needed.
 
 Pick the lowest free block unless you have a reason not to; any free
 aligned block is fine. One entry per PID. PID values are hexadecimal:
@@ -47,7 +54,8 @@ PR, use the [PID request issue form](../../issues/new/choose).
 | `board` | Board name |
 | `date` | Assignment date, `YYYY-MM-DD` |
 | `contact` | Email address for the manufacturer |
-| `px4_vendor` | Your vendor directory name in the PX4 `boards/` tree. Optional until you upstream a board; **required before your first PX4-Autopilot board PR**, otherwise PX4 CI will reject it. |
+| `px4_vendor` | Your vendor directory name in the PX4 `boards/` tree. Optional until you upstream a board; needed for `px4_board`, which must sit inside it. |
+| `px4_board` | On a PID: the `<vendor>/<board>` directory under PX4's `boards/` that uses it (e.g. `siyi/n7`). **Required, and merged here, before you open the PX4-Autopilot board PR**: PX4 CI rejects a board using VID `0x3643` whose PID is not mapped to its directory. Leave it off for boards not headed upstream. |
 | `blocks` | List of claimed block starts, `"0x"` + 4 uppercase hex digits ending in `0`; each covers 16 PIDs (`0xNNN0`-`0xNNNF`), globally unique. Required before any non-legacy PID can be assigned. |
 | `legacy` | `true` on assignments that predate the block policy (before 2026-09). Maintainer-set, not for new requests. |
 
@@ -59,6 +67,19 @@ python3 validate.py usb-ids.yaml
 ```
 
 Runs automatically on every PR and push to `main`.
+
+`check_px4.py` checks the registry against a PX4-Autopilot checkout in both
+directions: every defconfig under a `px4_board` directory that sets
+`CONFIG_CDCACM_VENDORID` to `0x3643` must set `CONFIG_CDCACM_PRODUCTID` to
+that entry's PID, and every PX4 board using VID `0x3643` must be claimed by
+some `px4_board`. A `px4_board` whose directory is not in PX4 yet is only a
+notice. A PX4 path with no board using VID `0x3643` fails rather than
+passing with nothing checked. CI runs it against PX4 `main` on every PR, push,
+and weekly.
+
+```sh
+python3 check_px4.py path/to/PX4-Autopilot usb-ids.yaml
+```
 
 Note for maintainers: PX4 CI (including release branches carrying older
 copies of `check_usb_ids.py`) fetches this file from `main` at check time,

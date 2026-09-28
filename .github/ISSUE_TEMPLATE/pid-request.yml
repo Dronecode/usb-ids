@@ -30,6 +30,14 @@ body:
         request claims one), one PID per board.
     validations:
       required: true
+  - type: input
+    id: px4_board
+    attributes:
+      label: PX4 board directory
+      description: >-
+        The `boards/<vendor>/<board>` directory in PX4-Autopilot that will
+        use the PID, if you have one (e.g. `boards/acme/fc1`). Leave empty
+        if the board is not headed upstream yet.
   - type: checkboxes
     id: membership
     attributes:

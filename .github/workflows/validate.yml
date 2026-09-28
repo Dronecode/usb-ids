@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "0 6 * * 1"  # weekly, catches drift on the PX4 side
+  workflow_dispatch:
 
 jobs:
   validate:
@@ -15,3 +18,15 @@ jobs:
           python-version: "3.x"
       - run: pip install pyyaml
       - run: python3 validate.py usb-ids.yaml
+
+  px4:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: pip install pyyaml
+      - run: git clone --depth 1 --filter=blob:none --sparse https://github.com/PX4/PX4-Autopilot.git px4
+      - run: git -C px4 sparse-checkout set boards
+      - run: python3 check_px4.py px4 usb-ids.yaml
