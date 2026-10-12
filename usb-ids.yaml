@@ -71,6 +71,7 @@ manufacturers:
         board: Agam MegH7
         date: 2026-08-22
         legacy: true
+        px4_board: agam/megh7
 
   - name: SIYI
     px4_vendor: siyi
