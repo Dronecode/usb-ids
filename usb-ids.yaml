@@ -57,6 +57,7 @@ manufacturers:
         board: Syro V6X
         date: 2026-08-03
         legacy: true
+        px4_board: syro/fmuv6x
 
   - name: Agam Robotics
     px4_vendor: agam
