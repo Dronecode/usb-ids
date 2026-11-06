@@ -38,6 +38,14 @@ manufacturers:
         board: X6
         date: 2024-08-01
         px4_board: zeroone/x6
+      - pid: "0x15E1"
+        board: X9
+        date: 2026-11-06
+        px4_board: zeroone/x9
+      - pid: "0x15EA"
+        board: M9
+        date: 2026-11-06
+        px4_board: zeroone/m9
 
   - name: NewBeeDrone
     # Not upstream in PX4 yet; slug matches boards/newbeedrone/ from PR #26966.
