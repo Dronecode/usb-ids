@@ -104,3 +104,4 @@ manufacturers:
       - pid: "0x06E0"
         board: DroneerX6
         date: 2026-09-15
+        px4_board: droneer/x6
